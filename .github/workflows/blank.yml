@@ -1,0 +1,55 @@
+name: Run external repo script every hour
+on:
+  schedule:
+    - cron: '0 * * * *'      # Every hour (changed from */3)
+  workflow_dispatch:         # Allow manual trigger too
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Clone the target repo
+      - name: Clone target repo
+        run: |
+          git clone ${{ secrets.REPO }}
+          cd ssubenum-radar
+      
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+      
+      # 3. Set up Go (required for assetfinder and amass)
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      
+      # 4. Install assetfinder
+      - name: Install assetfinder
+        run: |
+          go install github.com/tomnomnom/assetfinder@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+      
+      # 5. Install subfinder
+      - name: Install subfinder
+        run: |
+          go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+      
+      # 6. Install amass
+      - name: Install amass
+        run: |
+          go install -v github.com/owasp-amass/amass/v4/...@master
+      
+      # 7. Install Python dependencies
+      - name: Install Python dependencies
+        run: |
+          cd ssubenum-radar
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      
+      # 8. Run your script
+      - name: Run script with secrets
+        run: |
+          cd ssubenum-radar
+          python bot.py
