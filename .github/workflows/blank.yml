@@ -45,11 +45,11 @@ jobs:
       # 7. Install Python dependencies
       - name: Install Python dependencies
         run: |
-          cd ssubenum-radar
+          cd subenum-radar
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       
       # 8. Run your script
       - name: Run script with secrets
         run: |
-          cd ssubenum-radar
+          cd subenum-radar
           python bot.py
